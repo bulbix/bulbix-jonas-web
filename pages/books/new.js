@@ -10,11 +10,19 @@ import {
   Stack,
   InputLabel,
   FormControl,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 
 export default function NewBook() {
   const initFilter = {
     isbn: "",
+    isbn_strjson: "",
+    isbn_object: {},
     number: 1,
     title: "",
     author: "",
@@ -25,6 +33,7 @@ export default function NewBook() {
   const [filter, setFilter] = useState(initFilter);
   const [filterRequest, setFilterRequest] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [openModal, setOpenModal] = useState(false)
 
   function handleChange(e) {
     setFilter({
@@ -37,11 +46,18 @@ export default function NewBook() {
     try {
       consultIsbn(filter.isbn)
         .then((response) => {
-          setFilter({
-            ...filter,
-            title: response.data.book.title,
-            author: response.data.book.authors.join("|"),
-          });
+          if (response.data.errorMessage !== "Not Found") {
+            setFilter({
+              ...filter,
+              title: response.data.book.title,
+              author: response.data.book.authors.join("|"),
+              isbn_object: response.data.book,
+              isbn_strjson: JSON.stringify(response.data.book, null, 2),
+            });
+            setOpenModal(true);
+          } else {
+            showDialog("ISBN no encontrado!", "", "error");
+          }
         })
         .catch((error) => {
           console.log(error);
@@ -63,10 +79,12 @@ export default function NewBook() {
       filterRequest.sold = false;
       filterRequest.level = parseInt(filter.level);
       filterRequest.section = filter.section;
+      filterRequest.isbndb = filter.isbn_object;
     }
   }
 
-  function newBook() {
+  function newBook(event) {
+    event.preventDefault();
     prepareRequest();
     setIsLoading(true);
     try {
@@ -103,22 +121,45 @@ export default function NewBook() {
     });
   }
 
+  function handleClose(){
+      setOpenModal(false);
+  }
+
   return (
     <Container
       sx={{
         background: "whitesmoke",
-        width: "80vw",
+        width: "100%",
         height: "350px",
         borderRadius: "16px",
-        marginTop: "40px",
-        alignItems: "center",
       }}
     >
+      <Dialog
+        onClose={handleClose}
+        aria-labelledby="simple-dialog-title"
+        open={openModal}
+      >
+        <DialogTitle id="simple-dialog-title">ISBN</DialogTitle>
+        <DialogContent>
+          {filter !== undefined && filter.isbn_strjson && (
+            <pre>{filter.isbn_strjson}</pre>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <form onSubmit={newBook}>
       <Stack spacing={2} marginTop="10px">
         <Stack direction="row" spacing={2}>
           <TextField
+            size="small"
             fullWidth
             label="ISBN"
+            placeholder="Buscar ISBN"
             variant="outlined"
             type="number"
             value={filter !== undefined && filter.isbn}
@@ -126,13 +167,20 @@ export default function NewBook() {
             onChange={handleChange}
             autoFocus
           />
-          <Button variant="contained" onClick={searchIsbn}>
-            Consultar Libro
-          </Button>
+          <IconButton
+            onClick={searchIsbn}
+            sx={{
+              left: "-60px",
+            }}
+          >
+            <SearchIcon></SearchIcon>
+          </IconButton>
         </Stack>
 
         <TextField
           label="Titulo"
+          placeholder="Registre Titulo"
+          required="true"
           variant="outlined"
           value={filter !== undefined && filter.title}
           name="title"
@@ -140,7 +188,9 @@ export default function NewBook() {
         />
 
         <TextField
-          label="Autor"
+          label="Autores"
+          placeholder="Registre Autores, separe con el caracter pipe |"
+          required="true"
           variant="outlined"
           id="standard-basic"
           value={filter !== undefined && filter.author}
@@ -196,10 +246,11 @@ export default function NewBook() {
             </Select>
           </FormControl>
         </Stack>
-        <Button variant="contained" onClick={newBook}>
-            Agregar Libro
-          </Button>
+        <Button variant="contained" type="submit">
+          Agregar Libro
+        </Button>
       </Stack>
+      </form>
     </Container>
   );
 }
