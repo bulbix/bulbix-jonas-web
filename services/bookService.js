@@ -6,15 +6,15 @@ const service = (url) => axios.create({
 });
 
 export function addBook(body) {
-    return service('http://127.0.0.1:5000/').post('add_book', body);
+    return service('http://127.0.0.1:8000/').post('add_book', body);
 }
 
-export function searchBook(title, author) {
-    return service('http://127.0.0.1:5000/').get('search_book?title=' + title + '&author=' + author);
+export function searchBook(query) {
+    return service('http://127.0.0.1:8000/').get('search_book?q=' + query);
 }
 
 export function consultIsbn(isbn) {
-    return service('http://127.0.0.1:5000/').get('consult_isbn?isbn=' + isbn);
+    return service('http://127.0.0.1:8000/').get('consult_isbn?isbn=' + isbn);
 }
 
 

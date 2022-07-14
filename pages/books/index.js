@@ -1,47 +1,47 @@
 import React, { useEffect, useState } from "react";
-import { DataGrid } from "@material-ui/data-grid";
-import TextField from "@material-ui/core/TextField";
-import {searchBook} from "../../services/bookService"
+import { Container, TextField, Stack, IconButton } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
+import { searchBook } from "../../services/bookService";
+import SearchIcon from '@mui/icons-material/Search';
+import NewBook from "./new";
 
-export default function ReportBooks(){
-
+export default function ReportBooks() {
   const initFilter = {
-    author : '',
-    title: ''
+    query: ""
   };
 
-  const [data, setData] = useState(undefined)
+  const [data, setData] = useState(undefined);
   const [filter, setFilter] = useState(initFilter);
   const [isLoading, setIsLoading] = useState(false);
 
   const columns = [
-      { field: "id", headerName: "Id", width:200, hide:true},
-      { field: "number", headerName: "Estante", width:130},
-      { field: "title", headerName: "Titulo", width:400},
-      { field: "author", headerName: "Autor", width:400},
-      { field: "level",  headerName: "Nivel", width:120},
-      { field: "section", headerName: "Seccion", width:130}
+    { field: "id", headerName: "Id", width: 200, hide: true },
+    { field: "title", headerName: "Titulo", width: 450 },
+    { field: "author", headerName: "Autor", width: 400 },
+    { field: "number", headerName: "Estante", width: 70 },
+    { field: "level", headerName: "Nivel", width: 70 },
+    { field: "section", headerName: "Seccion", width: 80 },
   ];
 
   function handleChange(e) {
-        setFilter({
-            ...filter,
-            [e.target.name]: e.target.value,
-        });
+    setFilter({
+      ...filter,
+      [e.target.name]: e.target.value,
+    });
   }
 
   useEffect(() => {
-      if(filter !== undefined) {
-          searchBooks(filter.title, filter.author)
-      }
-    }, [filter])
+    if (filter !== undefined) {
+      searchBooks(filter.query);
+    }
+  }, [filter]);
 
-  function searchBooks(title, author) {
+  function searchBooks(query) {
     setIsLoading(true);
     try {
-      searchBook(title,author)
+      searchBook(query)
         .then((response) => {
-          setData(response.data)
+          setData(response.data);
         })
         .catch((error) => {
           console.log(error);
@@ -55,24 +55,39 @@ export default function ReportBooks(){
   }
 
   return (
-    <div style={{width: '100%' }}>
-       <br/>
-      <TextField label="Titulo" variant="outlined" id="standard-basic"
-                   value={filter !== undefined && filter.title} name="title"
-                   onChange={handleChange} />
+    <Container>
+      <Stack direction="column" spacing={2}>
+        <NewBook />
+       
+        <Stack direction="row" spacing={2}>
+        <TextField
+            sx={{
+              width:'90%'
+            }}
+            size="small"
+            label="Buscar Libro"
+            placeholder="Busca por titulo o autor"
+            variant="outlined"
+            value={filter !== undefined && filter.query}
+            name="query"
+            onChange={handleChange}
+          />
+        <IconButton sx={{
+          left:"-60px"
+        }}>
+          <SearchIcon></SearchIcon>
+        </IconButton>
+        </Stack>
 
-      <TextField label="Autor" variant="outlined" id="standard-basic"
-                   value={filter !== undefined && filter.author} name="author"
-                   onChange={handleChange} />
-
-      {data !== undefined && (
-        <DataGrid
-          loading={isLoading}
-          columns={columns}
-          autoHeight={true}
-          rows={data}
-        />
-      )}
-    </div>
+        {data !== undefined && (
+          <DataGrid
+            loading={isLoading}
+            columns={columns}
+            autoHeight={true}
+            rows={data}
+          />
+        )}
+      </Stack>
+    </Container>
   );
 }
