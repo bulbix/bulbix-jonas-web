@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import Swal from "sweetalert2";
 import { addBook, consultIsbn } from "../../services/bookService";
 import {
   TextField,
@@ -17,6 +16,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import { showDialog } from "../../utils/util";
 
 export default function NewBook() {
   const initFilter = {
@@ -27,7 +27,7 @@ export default function NewBook() {
     title: "",
     author: "",
     level: 1,
-    section: "forward",
+    section: "adelante",
   };
 
   const [filter, setFilter] = useState(initFilter);
@@ -56,7 +56,7 @@ export default function NewBook() {
             });
             setOpenModal(true);
           } else {
-            showDialog("ISBN no encontrado!", "", "error");
+            showDialog("Oops", "No encontramos ISBN capture a mano por favor", "warning")
           }
         })
         .catch((error) => {
@@ -80,6 +80,7 @@ export default function NewBook() {
       filterRequest.level = parseInt(filter.level);
       filterRequest.section = filter.section;
       filterRequest.isbndb = filter.isbn_object;
+      filterRequest.uuid = '' 
     }
   }
 
@@ -90,9 +91,17 @@ export default function NewBook() {
     try {
       addBook(filterRequest)
         .then((response) => {
-          showDialog("Agregado exitosamente!");
+          showDialog("OK", "Agregado exitosamente", "success", ()=>{
+            setFilter({
+              ...filter,
+              isbn: "",
+              title: "",
+              author: "",
+            });
+          });
         })
         .catch((error) => {
+          showDialog("FAIL", "Oops algo fallo", "error")
           console.log(error);
         })
         .finally(() => {
@@ -101,24 +110,6 @@ export default function NewBook() {
     } catch (e) {
       console.error(e);
     }
-  }
-
-  function showDialog(title = "Exito!", text = "", icon = "success") {
-    Swal.fire({
-      title: title,
-      width: "600px",
-      heightAuto: true,
-      showConfirmButton: true,
-      confirmButtonText: "Cerrar",
-      confirmButtonColor: "#333",
-    }).then(() => {
-      setFilter({
-        ...filter,
-        isbn: "",
-        title: "",
-        author: "",
-      });
-    });
   }
 
   function handleClose(){
@@ -138,6 +129,7 @@ export default function NewBook() {
         onClose={handleClose}
         aria-labelledby="simple-dialog-title"
         open={openModal}
+        fullWidth
       >
         <DialogTitle id="simple-dialog-title">ISBN</DialogTitle>
         <DialogContent>
@@ -180,7 +172,7 @@ export default function NewBook() {
         <TextField
           label="Titulo"
           placeholder="Registre Titulo"
-          required="true"
+          required={true}
           variant="outlined"
           value={filter !== undefined && filter.title}
           name="title"
@@ -190,7 +182,7 @@ export default function NewBook() {
         <TextField
           label="Autores"
           placeholder="Registre Autores, separe con el caracter pipe |"
-          required="true"
+          required={true}
           variant="outlined"
           id="standard-basic"
           value={filter !== undefined && filter.author}
@@ -241,8 +233,8 @@ export default function NewBook() {
               name="section"
               onChange={handleChange}
             >
-              <MenuItem value={"backward"}>backward</MenuItem>
-              <MenuItem value={"forward"}>forward</MenuItem>
+              <MenuItem value={"atras"}>atras</MenuItem>
+              <MenuItem value={"adelante"}>adelante</MenuItem>
             </Select>
           </FormControl>
         </Stack>
