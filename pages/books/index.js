@@ -8,16 +8,17 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { DataGrid } from "@mui/x-data-grid";
 import { searchBook } from "../../services/bookService";
 import SearchIcon from "@mui/icons-material/Search";
-import NewBook from "./new";
-import UpdateBook from "./update";
-import { Rowing } from "@mui/icons-material";
+import NewBook from "../../components/books/new";
+import UpdateBook from "../../components/books/update";
+import { useSession, signIn, signOut } from "next-auth/react"
 
-export default function ReportBooks() {
+export default function JonasBooks() {
   const initFilter = {
     query: "",
     sold: false
   };
 
+  const { data: session } = useSession()
   const [data, setData] = useState(undefined);
   const [filter, setFilter] = useState(initFilter);
   const [isLoading, setIsLoading] = useState(false);
@@ -100,8 +101,29 @@ export default function ReportBooks() {
     setOpenModal(false);
   }
 
+  if (!session) {
+    return (
+      <>
+        <button onClick={() => signIn()}>Iniciar Sesión</button>
+      </>
+    )
+  }
+  else{
+    if(session.user.email != "lfpradof@gmail.com" && session.user.email != "pradoluix@gmail.com"){
+      return (
+        <>
+          <h1>No Autorizado</h1>
+        </>
+      )
+    }
+  }
+
   return (
     <Container>
+
+    <div>Bienvenido, <span style={{"color":"blue"}}>{session?.user.name} - {session?.user.email} </span> <button onClick={() => signOut()}>Cerrar Sesión</button></div>
+   
+    <br />
     
     <UpdateBook openModal={openModal} handleClose={handleClose} book={book}></UpdateBook>
 
