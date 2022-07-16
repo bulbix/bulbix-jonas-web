@@ -1,12 +1,11 @@
 import axios from 'axios'
 
-const baseURL = 'https://safe-hamlet-62856.herokuapp.com/'
-//const baseURL = 'http://127.0.0.1:8000/'
-
+const baseURL = process.env.NEXT_PUBLIC_JONAS_SERVICE_HOST
 
 const service = (url) => axios.create({
     baseURL: url,
     timeout: 15000,
+    headers: {"Authorization" : "Bearer " + process.env.NEXT_PUBLIC_JONAS_KEY}
 });
 
 export function addBook(body) {
@@ -24,5 +23,3 @@ export function searchBook(query, sold) {
 export function consultIsbn(isbn) {
     return service(baseURL).get('consult_isbn?isbn=' + isbn);
 }
-
-
